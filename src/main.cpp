@@ -90,6 +90,7 @@ int main(int argc, char* argv[])
     tracker.initialise(frame, playerBox);
 
     int frameNumber = 0;
+    std::vector<cv::Point> playerPath;
 
     while (video.read(frame))
     {
@@ -102,12 +103,34 @@ int main(int argc, char* argv[])
             std::cout << "Player found at frame " << frameNumber << " with score "
                       << trackedPosition.score << std::endl;
             cv::rectangle(frame, trackedPosition.position, cv::Scalar(0, 255, 0), 2);
+            cv::Point playerCentre =
+                cv::Point(trackedPosition.position.x + trackedPosition.position.height / 2,
+                          trackedPosition.position.y + trackedPosition.position.width / 2);
+            playerPath.push_back(playerCentre);
         }
         else
         {
             std::cout << "Player not found at frame " << frameNumber << std::endl;
-            cv::rectangle(frame, playerBox, cv::Scalar(0, 0, 255), 2);
+            cv::rectangle(frame, trackedPosition.position, cv::Scalar(0, 0, 255), 2);
+            cv::putText(frame, "Tracking Lost - Press R to reselect", cv::Point(10, 40),
+                        cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 2);
         }
+        std::ostringstream trackingText;
+        trackingText << std::fixed << std::setprecision(1)
+                     << "Tracker match score: " << trackedPosition.score;
+        cv::putText(frame, trackingText.str(), cv::Point(10, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5,
+                    trackedPosition.found ? cv::Scalar(0, 255, 0) : cv::Scalar(0, 0, 255), 2);
+
+        const double currentTime = frameNumber / fps;
+        const std::string timeText = formatTime(currentTime);
+        cv::putText(frame, timeText, cv::Point(10, 60), cv::FONT_HERSHEY_SIMPLEX, 0.5,
+                    cv::Scalar(0, 0, 255), 2);
+
+        for (std::size_t i = 0; i < playerPath.size() - 1; ++i)
+        {
+            cv::line(frame, playerPath[i], playerPath[i + 1], cv::Scalar(0, 255, 0), 2);
+        }
+
         cv::imshow("Tracking", frame);
 
         output.write(frame);
@@ -115,6 +138,22 @@ int main(int argc, char* argv[])
         if (key == 27 || key == 'q')
         {
             break;
+        }
+
+        if (key == 'r')
+        {
+            const cv::Rect newPlayerBox = cv::selectROI("Select Player", frame, false, false);
+            cv::destroyWindow("Select Player");
+            if (newPlayerBox.width > 0 && newPlayerBox.height > 0)
+            {
+                tracker.initialise(frame, newPlayerBox);
+                consecutiveFailures = 0;
+            }
+            else
+            {
+                std::cerr << "Error: no player was selected.\n";
+                continue;
+            }
         }
     }
 

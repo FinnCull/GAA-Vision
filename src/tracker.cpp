@@ -121,7 +121,7 @@ TrackingResult Tracker::update(const cv::Mat& frame)
         currentPosition = bestPosition;
     }
 
-    return {bestPosition, bestScore, found};
+    return {currentPosition, bestScore, found};
 }
 
 Tracker::Tracker(int searchRadius) : searchRadius(searchRadius)
