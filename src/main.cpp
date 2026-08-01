@@ -147,7 +147,6 @@ int main(int argc, char* argv[])
             if (newPlayerBox.width > 0 && newPlayerBox.height > 0)
             {
                 tracker.initialise(frame, newPlayerBox);
-                consecutiveFailures = 0;
             }
             else
             {
