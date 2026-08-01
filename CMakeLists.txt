@@ -28,3 +28,32 @@ target_compile_options(gaa_vision
 		 -Wextra
 		 -Wpedantic
     )
+
+include(CTest)
+
+if(BUILD_TESTING)
+    add_executable(tracker_tests
+        tests/tracker_test.cpp
+        src/tracker.cpp
+    )
+
+    target_include_directories(tracker_tests
+        PRIVATE
+        include
+        ${OpenCV_INCLUDE_DIRS}
+    )
+
+    target_link_libraries(tracker_tests
+        PRIVATE
+        ${OpenCV_LIBS}
+    )
+
+    target_compile_options(tracker_tests
+        PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+    )
+
+    add_test(NAME tracker_tests COMMAND tracker_tests)
+endif()

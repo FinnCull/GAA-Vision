@@ -93,13 +93,26 @@ int main(int argc, char* argv[])
 
     while (video.read(frame))
     {
-        cv::Rect trackedPosition = tracker.update(frame);
+        frameNumber++;
 
-        cv::rectangle(frame, trackedPosition, cv::Scalar(0, 255, 0), 2);
+        TrackingResult trackedPosition = tracker.update(frame);
 
+        if (trackedPosition.found)
+        {
+            std::cout << "Player found at frame " << frameNumber << " with score "
+                      << trackedPosition.score << std::endl;
+            cv::rectangle(frame, trackedPosition.position, cv::Scalar(0, 255, 0), 2);
+        }
+        else
+        {
+            std::cout << "Player not found at frame " << frameNumber << std::endl;
+            cv::rectangle(frame, playerBox, cv::Scalar(0, 0, 255), 2);
+        }
         cv::imshow("Tracking", frame);
 
-        if (cv::waitKey(1) == 27)
+        output.write(frame);
+        const int key = cv::waitKey(1) & 0xFF;
+        if (key == 27 || key == 'q')
         {
             break;
         }
